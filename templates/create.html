@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>{% block title %} Park a car {% endblock %}</h1>
+    <form method="post">
+        <label for="title">Title</label>
+        <br>
+        <input type="text" name="plate"
+               placeholder="Post plate"
+               value="{{ request.form['plate'] }}"></input>
+        <br>
+
+        <label for="content">Post Content</label>
+        <br>
+        <input type="text" name="password"
+               placeholder="Post password"
+               value="{{ request.form['password'] }}"></input>
+        <br>
+        <button type="submit">Submit</button>
+    </form>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>{% block title %} Cars {% endblock %}</h1>
+    {% for post in posts %}
+        <div class='post'>
+			<h2>{{ post[0] }}</h2>
+            <p>{{ post[1] }}</p>
+           
+        </div>
+    {% endfor %}
+{% endblock %}
