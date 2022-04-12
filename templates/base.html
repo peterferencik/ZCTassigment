@@ -16,6 +16,11 @@
             margin-left: 50px;
             text-decoration: none;
         }
+		.container{
+			color: #ff0000;
+            font-size: 1em;
+			text-decoration: none;
+		}
     </style>
 </head>
 <body>
@@ -25,6 +30,13 @@
 		<a href="{{ url_for('unpark') }}">Unpark car</a>
     </nav>
     <hr>
+	<div class="container">
+	 
+	 {% for message in get_flashed_messages()%}
+		{{message}}
+	 {% endfor %}
+	 
+	</div>
     <div class="content">
         {% block content %} {% endblock %}
     </div>
