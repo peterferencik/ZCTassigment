@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, url_for, flash, redirect
 import psycopg2
-
+from datetime import datetime
+import time
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your secret key'
@@ -34,7 +35,12 @@ def create():
             conn.autocommit = True
             cur = conn.cursor()
             #cur.execute("INSERT INTO cars (plate, password) VALUES ('{}', '{}');".format(plate,password))
-            cur.execute("UPDATE cars SET plate = '{}',password = '{}',is_free = FALSE WHERE id = (SELECT ID from cars WHERE is_free = TRUE LIMIT 1);".format(plate,password))
+            cur.execute("SELECT count(ID) from cars WHERE is_free = TRUE")
+            places = cur.fetchall()
+            if places[0][0] == 0:
+                flash("Parking place is full please wait until place frees!")
+                return redirect(url_for('create'))
+            cur.execute("UPDATE cars SET plate = '{}',password = '{}',is_free = FALSE,time = '{}' WHERE id = (SELECT ID from cars WHERE is_free = TRUE LIMIT 1);".format(plate,password,str(datetime.now())))
             conn.commit()
             conn.close()
             return redirect(url_for('index'))
@@ -56,11 +62,30 @@ def unpark():
             conn.autocommit = True
             cur = conn.cursor()
             #cur.execute("INSERT INTO cars (plate, password) VALUES ('{}', '{}');".format(plate,password))
-            cur.execute("UPDATE cars SET plate = '',password = '',is_free = TRUE WHERE plate = '{}' AND password = '{}' ;".format(plate,password))
+            cur.execute("SELECT time from cars WHERE plate = '{}' AND password = '{}' ;".format(plate,password))
+            time = cur.fetchall()
+            date_format_str = '%Y-%m-%d %H:%M:%S.%f'
+            try:
+                start = datetime.strptime(time[0][0], date_format_str)
+            except:
+                flash("Wrong licence plate or password!")
+                return redirect(url_for('unpark'))
+            end = datetime.now()
+            diff = end - start
+            diff_in_hours = diff.total_seconds() / 3600
+            money = diff_in_hours * 5
+            flash("You need to pay {:.2f} euros".format(money))
+            cur.execute("UPDATE cars SET plate = '',password = '',is_free = TRUE,time = '' WHERE plate = '{}' AND password = '{}' ;".format(plate,password))
             conn.commit()
             conn.close()
-            return redirect(url_for('index'))
+            return redirect(url_for('payment'))
 
     return render_template('unpark.html')
-
+@app.route('/payment/',methods=('GET','POST'))
+def payment():
+    if request.method == 'POST':
+        flash("Thanks for parking on our parking place. Payment accepted!")
+        time.sleep(2)
+        return redirect(url_for('index'))
+    return render_template('payment.html')
     
